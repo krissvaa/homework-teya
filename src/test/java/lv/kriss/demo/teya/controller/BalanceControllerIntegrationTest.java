@@ -93,4 +93,11 @@ class BalanceControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].currency").value("EUR"))
                 .andExpect(jsonPath("$[0].amount").value(175.50));
     }
+
+    @Test
+    void getBalances_blankAccountId_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/balances").param("accountId", ""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.accountId", not(blankOrNullString())));
+    }
 }

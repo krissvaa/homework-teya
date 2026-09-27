@@ -142,4 +142,100 @@ class TransactionControllerIntegrationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors.amount", not(blankOrNullString())));
     }
+
+    @Test
+    void createTransaction_missingBalanceId_returnsBadRequest() throws Exception {
+        var request = new CreateTransactionRequest(null, new BigDecimal("10.00"), "EUR", TransactionType.DEPOSIT);
+
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.balanceId", not(blankOrNullString())));
+    }
+
+    @Test
+    void createTransaction_missingAmount_returnsBadRequest() throws Exception {
+        var request = new CreateTransactionRequest(ALICE_EUR_BALANCE_ID, null, "EUR", TransactionType.DEPOSIT);
+
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.amount", not(blankOrNullString())));
+    }
+
+    @Test
+    void createTransaction_negativeAmount_returnsBadRequest() throws Exception {
+        var request = new CreateTransactionRequest(
+                ALICE_EUR_BALANCE_ID, new BigDecimal("-10.00"), "EUR", TransactionType.DEPOSIT);
+
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.amount", not(blankOrNullString())));
+    }
+
+    @Test
+    void createTransaction_missingCurrency_returnsBadRequest() throws Exception {
+        var request = new CreateTransactionRequest(ALICE_EUR_BALANCE_ID, new BigDecimal("10.00"), null, TransactionType.DEPOSIT);
+
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.currency", not(blankOrNullString())));
+    }
+
+    @Test
+    void createTransaction_invalidCurrencyFormat_returnsBadRequest() throws Exception {
+        var request = new CreateTransactionRequest(
+                ALICE_EUR_BALANCE_ID, new BigDecimal("10.00"), "eur", TransactionType.DEPOSIT);
+
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.currency", not(blankOrNullString())));
+    }
+
+    @Test
+    void createTransaction_missingType_returnsBadRequest() throws Exception {
+        var request = new CreateTransactionRequest(ALICE_EUR_BALANCE_ID, new BigDecimal("10.00"), "EUR", null);
+
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.type", not(blankOrNullString())));
+    }
+
+    @Test
+    void createTransaction_emptyBody_returnsBadRequestWithAllFieldErrors() throws Exception {
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.balanceId", not(blankOrNullString())))
+                .andExpect(jsonPath("$.errors.amount", not(blankOrNullString())))
+                .andExpect(jsonPath("$.errors.currency", not(blankOrNullString())))
+                .andExpect(jsonPath("$.errors.type", not(blankOrNullString())));
+    }
+
+    @Test
+    void createTransaction_malformedJson_returnsBadRequest() throws Exception {
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content("not-json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail", not(blankOrNullString())));
+    }
+
+    @Test
+    void getTransactions_blankBalanceId_returnsBadRequest() throws Exception {
+        mockMvc.perform(get("/transactions").param("balanceId", ""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.balanceId", not(blankOrNullString())));
+    }
 }
