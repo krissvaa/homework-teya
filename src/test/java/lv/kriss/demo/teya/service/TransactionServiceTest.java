@@ -10,6 +10,7 @@ import lv.kriss.demo.teya.exception.ResourceNotFoundException;
 import lv.kriss.demo.teya.repository.BalanceRepository;
 import lv.kriss.demo.teya.repository.TransactionRepository;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -120,6 +121,23 @@ class TransactionServiceTest {
         assertThat(balance.getBalance().getAmount()).isEqualByComparingTo("100.00");
         verify(balanceRepository, never()).save(any());
         verifyNoInteractions(transactionRepository);
+    }
+
+    @Test
+    void deposit_amountWithFewerDecimalPlacesThanCurrency_isNormalizedToCurrencyScale() {
+        var balanceId = UUID.randomUUID();
+        var balance = balance(balanceId, "EUR", "100.00");
+        when(balanceRepository.findById(balanceId)).thenReturn(Optional.of(balance));
+        when(balanceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(transactionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var request = new CreateTransactionRequest(balanceId, new BigDecimal("10"), "EUR", TransactionType.DEPOSIT);
+        service.createTransaction(request);
+
+        var transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository).save(transactionCaptor.capture());
+        assertThat(transactionCaptor.getValue().getAmount().getAmount().scale()).isEqualTo(2);
+        assertThat(balance.getBalance().getAmount().scale()).isEqualTo(2);
     }
 
     @Test

@@ -20,13 +20,14 @@ public final class TransactionMapper {
         if (transaction == null) {
             return null;
         }
+        Currency currency = transaction.getAmount().getCurrency();
         return new TransactionDto(
                 transaction.getId(),
                 transaction.getBalance().getId(),
-                transaction.getAmount().getAmount(),
-                transaction.getAmount().getCurrency().getCurrencyCode(),
+                Money.scale(transaction.getAmount().getAmount(), currency),
+                currency.getCurrencyCode(),
                 transaction.getType(),
-                transaction.getBalanceAfter(),
+                Money.scale(transaction.getBalanceAfter(), currency),
                 transaction.getCreatedAt()
         );
     }
@@ -41,7 +42,7 @@ public final class TransactionMapper {
         return new Transaction(
                 null,
                 balance,
-                new Money(request.amount(), Currency.getInstance(request.currency())),
+                Money.of(request.amount(), Currency.getInstance(request.currency())),
                 request.type(),
                 balanceAfter,
                 Instant.now()

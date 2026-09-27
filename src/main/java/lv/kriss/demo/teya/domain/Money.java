@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Currency;
 
 @Embeddable
@@ -20,4 +21,12 @@ public class Money {
     private BigDecimal amount;
     @Column(nullable = false, length = 3)
     private Currency currency;
+
+    public static Money of(BigDecimal amount, Currency currency) {
+        return new Money(scale(amount, currency), currency);
+    }
+
+    public static BigDecimal scale(BigDecimal amount, Currency currency) {
+        return amount.setScale(currency.getDefaultFractionDigits(), RoundingMode.UNNECESSARY);
+    }
 }

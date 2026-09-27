@@ -22,11 +22,12 @@ public final class BalanceMapper {
         if (balance == null) {
             return null;
         }
+        Currency currency = balance.getBalance().getCurrency();
         return new BalanceDto(
                 balance.getId(),
                 balance.getAccount().getId(),
-                balance.getBalance().getAmount(),
-                balance.getBalance().getCurrency().getCurrencyCode(),
+                Money.scale(balance.getBalance().getAmount(), currency),
+                currency.getCurrencyCode(),
                 balance.getCreatedAt(),
                 balance.getUpdatedAt()
         );
@@ -42,7 +43,7 @@ public final class BalanceMapper {
         var now = Instant.now();
         return new Balance(
                 null,
-                new Money(BigDecimal.ZERO, Currency.getInstance(request.currency())),
+                Money.of(BigDecimal.ZERO, Currency.getInstance(request.currency())),
                 account,
                 now,
                 now,
@@ -51,10 +52,11 @@ public final class BalanceMapper {
     }
 
     public static BalanceDetailDto toDetailDto(Balance balance, List<Transaction> transactions) {
+        Currency currency = balance.getBalance().getCurrency();
         return new BalanceDetailDto(
                 balance.getId(),
-                balance.getBalance().getAmount(),
-                balance.getBalance().getCurrency().getCurrencyCode(),
+                Money.scale(balance.getBalance().getAmount(), currency),
+                currency.getCurrencyCode(),
                 TransactionMapper.toDtoList(transactions)
         );
     }
