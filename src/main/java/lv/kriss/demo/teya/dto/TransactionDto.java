@@ -17,7 +17,6 @@ public record TransactionDto(
         @NotNull @Pattern(regexp = "^[A-Z]{3}$", message = "must be a 3-letter ISO 4217 currency code") String currency,
         @NotNull TransactionType type,
         @NotNull @PositiveOrZero BigDecimal balanceAfter,
-        Instant createdAt,
-        Instant updatedAt
+        Instant createdAt
 ) {
 }

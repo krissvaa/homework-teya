@@ -27,8 +27,7 @@ public final class TransactionMapper {
                 transaction.getAmount().getCurrency().getCurrencyCode(),
                 transaction.getType(),
                 transaction.getBalanceAfter(),
-                transaction.getCreatedAt(),
-                transaction.getUpdatedAt()
+                transaction.getCreatedAt()
         );
     }
 
@@ -39,15 +38,13 @@ public final class TransactionMapper {
     }
 
     public static Transaction toEntity(CreateTransactionRequest request, Balance balance, BigDecimal balanceAfter) {
-        var now = Instant.now();
         return new Transaction(
                 null,
                 balance,
                 new Money(request.amount(), Currency.getInstance(request.currency())),
                 request.type(),
                 balanceAfter,
-                now,
-                now
+                Instant.now()
         );
     }
 }

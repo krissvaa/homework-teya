@@ -36,7 +36,4 @@ public class Transaction {
     @Column(nullable = false)
     private Instant createdAt;
 
-    @Column(nullable = false)
-    private Instant updatedAt;
-
 }
