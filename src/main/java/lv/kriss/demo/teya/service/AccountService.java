@@ -1,6 +1,7 @@
 package lv.kriss.demo.teya.service;
 
 import lv.kriss.demo.teya.dto.AccountDto;
+import lv.kriss.demo.teya.dto.CreateAccountRequest;
 import lv.kriss.demo.teya.mapper.AccountMapper;
 import lv.kriss.demo.teya.repository.AccountRepository;
 import org.springframework.stereotype.Service;
@@ -16,8 +17,9 @@ public class AccountService {
         this.accountRepository = accountRepository;
     }
 
-    public void createAccount() {
-
+    public AccountDto createAccount(CreateAccountRequest request) {
+        var account = accountRepository.save(AccountMapper.toEntity(request));
+        return AccountMapper.toDto(account);
     }
 
     public List<AccountDto> getAllAccounts() {

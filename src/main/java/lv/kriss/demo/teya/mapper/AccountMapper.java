@@ -2,7 +2,9 @@ package lv.kriss.demo.teya.mapper;
 
 import lv.kriss.demo.teya.domain.Account;
 import lv.kriss.demo.teya.dto.AccountDto;
+import lv.kriss.demo.teya.dto.CreateAccountRequest;
 
+import java.time.Instant;
 import java.util.List;
 
 public final class AccountMapper {
@@ -26,5 +28,10 @@ public final class AccountMapper {
         return accounts.stream()
                 .map(AccountMapper::toDto)
                 .toList();
+    }
+
+    public static Account toEntity(CreateAccountRequest request) {
+        var now = Instant.now();
+        return new Account(null, request.name(), now, now, null);
     }
 }
