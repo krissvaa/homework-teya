@@ -52,6 +52,13 @@ public class TransactionService {
                             + ", transaction is " + request.currency());
         }
 
+        int fractionDigits = balance.getBalance().getCurrency().getDefaultFractionDigits();
+        if (request.amount().stripTrailingZeros().scale() > Math.max(fractionDigits, 0)) {
+            throw new InvalidTransactionException(
+                    "Amount " + request.amount() + " has more decimal digits than allowed for currency "
+                            + balanceCurrency + " (" + fractionDigits + ")");
+        }
+
         BigDecimal newAmount = switch (request.type()) {
             case DEPOSIT -> balance.getBalance().getAmount().add(request.amount());
             case WITHDRAWAL -> balance.getBalance().getAmount().subtract(request.amount());

@@ -123,6 +123,56 @@ class TransactionServiceTest {
     }
 
     @Test
+    void deposit_tooManyDecimalDigitsForCurrency_throwsAndDoesNotPersistOrMutateBalance() {
+        var balanceId = UUID.randomUUID();
+        var balance = balance(balanceId, "EUR", "100.00");
+        when(balanceRepository.findById(balanceId)).thenReturn(Optional.of(balance));
+
+        var request = new CreateTransactionRequest(balanceId, new BigDecimal("10.001"), "EUR", TransactionType.DEPOSIT);
+
+        assertThatThrownBy(() -> service.createTransaction(request))
+                .isInstanceOf(InvalidTransactionException.class)
+                .hasMessageContaining("decimal digits")
+                .hasMessageContaining("EUR");
+
+        assertThat(balance.getBalance().getAmount()).isEqualByComparingTo("100.00");
+        verify(balanceRepository, never()).save(any());
+        verifyNoInteractions(transactionRepository);
+    }
+
+    @Test
+    void withdrawal_tooManyDecimalDigitsForZeroFractionCurrency_throws() {
+        var balanceId = UUID.randomUUID();
+        var balance = balance(balanceId, "JPY", "100");
+        when(balanceRepository.findById(balanceId)).thenReturn(Optional.of(balance));
+
+        var request = new CreateTransactionRequest(balanceId, new BigDecimal("10.5"), "JPY", TransactionType.WITHDRAWAL);
+
+        assertThatThrownBy(() -> service.createTransaction(request))
+                .isInstanceOf(InvalidTransactionException.class)
+                .hasMessageContaining("decimal digits")
+                .hasMessageContaining("JPY");
+
+        assertThat(balance.getBalance().getAmount()).isEqualByComparingTo("100");
+        verify(balanceRepository, never()).save(any());
+        verifyNoInteractions(transactionRepository);
+    }
+
+    @Test
+    void deposit_amountWithTrailingZerosWithinFractionDigits_isAllowed() {
+        var balanceId = UUID.randomUUID();
+        var balance = balance(balanceId, "EUR", "100.00");
+        when(balanceRepository.findById(balanceId)).thenReturn(Optional.of(balance));
+        when(balanceRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(transactionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        var request = new CreateTransactionRequest(balanceId, new BigDecimal("10.500"), "EUR", TransactionType.DEPOSIT);
+        var result = service.createTransaction(request);
+
+        assertThat(result.balanceAfter()).isEqualByComparingTo("110.50");
+    }
+
+    @Test
     void unknownBalance_throwsResourceNotFoundAndDoesNotTouchTransactionRepository() {
         var balanceId = UUID.randomUUID();
         when(balanceRepository.findById(balanceId)).thenReturn(Optional.empty());
