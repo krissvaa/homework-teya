@@ -1,8 +1,14 @@
 package lv.kriss.demo.teya.mapper;
 
+import lv.kriss.demo.teya.domain.Balance;
+import lv.kriss.demo.teya.domain.Money;
 import lv.kriss.demo.teya.domain.Transaction;
+import lv.kriss.demo.teya.dto.CreateTransactionRequest;
 import lv.kriss.demo.teya.dto.TransactionDto;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.Currency;
 import java.util.List;
 
 public final class TransactionMapper {
@@ -30,5 +36,18 @@ public final class TransactionMapper {
         return transactions.stream()
                 .map(TransactionMapper::toDto)
                 .toList();
+    }
+
+    public static Transaction toEntity(CreateTransactionRequest request, Balance balance, BigDecimal balanceAfter) {
+        var now = Instant.now();
+        return new Transaction(
+                null,
+                balance,
+                new Money(request.amount(), Currency.getInstance(request.currency())),
+                request.type(),
+                balanceAfter,
+                now,
+                now
+        );
     }
 }
