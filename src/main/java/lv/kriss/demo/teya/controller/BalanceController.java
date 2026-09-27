@@ -1,5 +1,6 @@
 package lv.kriss.demo.teya.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lv.kriss.demo.teya.dto.BalanceDto;
 import lv.kriss.demo.teya.service.BalanceService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/balances")
+@Tag(name = "Balances")
 public class BalanceController {
 
     private final BalanceService balanceService;

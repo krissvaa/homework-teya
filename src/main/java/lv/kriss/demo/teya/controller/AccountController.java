@@ -1,6 +1,7 @@
 package lv.kriss.demo.teya.controller;
 
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lv.kriss.demo.teya.dto.AccountDto;
 import lv.kriss.demo.teya.dto.CreateAccountRequest;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/accounts")
+@Tag(name = "Accounts")
 public class AccountController {
 
     private final AccountService accountService;
