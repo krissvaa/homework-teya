@@ -87,6 +87,17 @@ class BalanceControllerIntegrationTest {
     }
 
     @Test
+    void createBalance_wellFormedButUnknownCurrencyCode_returnsBadRequest() throws Exception {
+        var request = new CreateBalanceRequest(ALICE_ACCOUNT_ID, "ABC");
+
+        mockMvc.perform(post("/balances")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail", not(blankOrNullString())));
+    }
+
+    @Test
     void getBalances_byAccountId_returnsSeedBalance() throws Exception {
         mockMvc.perform(get("/balances").param("accountId", ALICE_ACCOUNT_ID.toString()))
                 .andExpect(status().isOk())
