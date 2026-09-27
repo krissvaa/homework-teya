@@ -120,6 +120,22 @@ class TransactionControllerIntegrationTest {
     }
 
     @Test
+    void transaction_tooManyDecimalPlacesForCurrency_returnsBadRequest() throws Exception {
+        var request = new CreateTransactionRequest(
+                CAROL_EUR_BALANCE_ID, new BigDecimal("10.001"), "EUR", TransactionType.DEPOSIT);
+
+        mockMvc.perform(post("/transactions")
+                        .contentType("application/json")
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.detail", not(blankOrNullString())));
+
+        mockMvc.perform(get("/transactions").param("balanceId", CAROL_EUR_BALANCE_ID.toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
     void transaction_unknownBalance_returnsNotFound() throws Exception {
         var request = new CreateTransactionRequest(
                 UUID.fromString("99999999-9999-9999-9999-999999999999"),
