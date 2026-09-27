@@ -1,5 +1,7 @@
 package lv.kriss.demo.teya.controller;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lv.kriss.demo.teya.exception.DuplicateBalanceException;
 import lv.kriss.demo.teya.exception.InvalidTransactionException;
 import lv.kriss.demo.teya.exception.ResourceNotFoundException;
@@ -46,6 +48,23 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.toMap(FieldError::getField, DefaultMessageSourceResolvable::getDefaultMessage, (a, _) -> a));
         problem.setProperty("errors", errors);
         return problem;
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
+        var errors = ex.getConstraintViolations().stream()
+                .collect(Collectors.toMap(
+                        v -> lastPathSegment(v.getPropertyPath().toString()),
+                        ConstraintViolation::getMessage,
+                        (a, _) -> a));
+        problem.setProperty("errors", errors);
+        return problem;
+    }
+
+    private static String lastPathSegment(String path) {
+        var lastDot = path.lastIndexOf('.');
+        return lastDot < 0 ? path : path.substring(lastDot + 1);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)

@@ -2,6 +2,7 @@ package lv.kriss.demo.teya.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lv.kriss.demo.teya.dto.CreateTransactionRequest;
 import lv.kriss.demo.teya.dto.TransactionDto;
 import lv.kriss.demo.teya.service.TransactionService;
@@ -13,12 +14,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/transactions")
 @Tag(name = "Transactions")
+@Validated
 public class TransactionController {
 
     private final TransactionService transactionService;
@@ -28,7 +31,7 @@ public class TransactionController {
     }
 
     @GetMapping
-    public List<TransactionDto> getTransactions(@RequestParam String balanceId) {
+    public List<TransactionDto> getTransactions(@RequestParam @NotBlank String balanceId) {
         return transactionService.getTransactionsByBalanceId(balanceId);
     }
 
