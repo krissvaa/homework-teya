@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
     List<Transaction> findByBalanceId(UUID balanceId);
+
+    List<Transaction> findByBalanceIdIn(List<UUID> balanceIds);
 }

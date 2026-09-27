@@ -1,6 +1,8 @@
 package lv.kriss.demo.teya.mapper;
 
 import lv.kriss.demo.teya.domain.Balance;
+import lv.kriss.demo.teya.domain.Transaction;
+import lv.kriss.demo.teya.dto.BalanceDetailDto;
 import lv.kriss.demo.teya.dto.BalanceDto;
 
 import java.util.List;
@@ -28,5 +30,14 @@ public final class BalanceMapper {
         return balances.stream()
                 .map(BalanceMapper::toDto)
                 .toList();
+    }
+
+    public static BalanceDetailDto toDetailDto(Balance balance, List<Transaction> transactions) {
+        return new BalanceDetailDto(
+                balance.getId(),
+                balance.getBalance().getAmount(),
+                balance.getBalance().getCurrency().getCurrencyCode(),
+                TransactionMapper.toDtoList(transactions)
+        );
     }
 }
