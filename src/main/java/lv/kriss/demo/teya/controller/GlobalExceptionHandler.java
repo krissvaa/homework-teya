@@ -16,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -43,7 +44,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
-        var errors = ex.getBindingResult().getFieldErrors().stream()
+        Map<String, String> errors = ex.getBindingResult().getFieldErrors().stream()
                 .filter(fe -> fe.getDefaultMessage() != null)
                 .collect(Collectors.toMap(FieldError::getField, DefaultMessageSourceResolvable::getDefaultMessage, (a, _) -> a));
         problem.setProperty("errors", errors);
@@ -53,7 +54,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ProblemDetail handleConstraintViolation(ConstraintViolationException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
-        var errors = ex.getConstraintViolations().stream()
+        Map<String, String> errors = ex.getConstraintViolations().stream()
                 .collect(Collectors.toMap(
                         v -> lastPathSegment(v.getPropertyPath().toString()),
                         ConstraintViolation::getMessage,
@@ -63,7 +64,7 @@ public class GlobalExceptionHandler {
     }
 
     private static String lastPathSegment(String path) {
-        var lastDot = path.lastIndexOf('.');
+        int lastDot = path.lastIndexOf('.');
         return lastDot < 0 ? path : path.substring(lastDot + 1);
     }
 

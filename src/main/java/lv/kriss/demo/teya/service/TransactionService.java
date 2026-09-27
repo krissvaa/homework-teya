@@ -1,5 +1,7 @@
 package lv.kriss.demo.teya.service;
 
+import lv.kriss.demo.teya.domain.Balance;
+import lv.kriss.demo.teya.domain.Transaction;
 import lv.kriss.demo.teya.dto.CreateTransactionRequest;
 import lv.kriss.demo.teya.dto.TransactionDto;
 import lv.kriss.demo.teya.exception.InvalidTransactionException;
@@ -32,7 +34,7 @@ public class TransactionService {
 
     public List<TransactionDto> getTransactionsByBalanceId(String balanceId) {
         try {
-            var transactions = transactionRepository.findByBalanceId(UUID.fromString(balanceId));
+            List<Transaction> transactions = transactionRepository.findByBalanceId(UUID.fromString(balanceId));
             return TransactionMapper.toDtoList(transactions);
         } catch (IllegalArgumentException e) {
             logger.info("No balance: {}", balanceId, e);
@@ -42,10 +44,10 @@ public class TransactionService {
 
     @Transactional
     public TransactionDto createTransaction(CreateTransactionRequest request) {
-        var balance = balanceRepository.findById(request.balanceId())
+        Balance balance = balanceRepository.findById(request.balanceId())
                 .orElseThrow(() -> new ResourceNotFoundException("No balance: " + request.balanceId()));
 
-        var balanceCurrency = balance.getBalance().getCurrency().getCurrencyCode();
+        String balanceCurrency = balance.getBalance().getCurrency().getCurrencyCode();
         if (!balanceCurrency.equals(request.currency())) {
             throw new InvalidTransactionException(
                     "Currency mismatch: balance " + balance.getId() + " is " + balanceCurrency
@@ -72,7 +74,7 @@ public class TransactionService {
         balance.setUpdatedAt(Instant.now());
         balanceRepository.save(balance);
 
-        var transaction = transactionRepository.save(TransactionMapper.toEntity(request, balance, newAmount));
+        Transaction transaction = transactionRepository.save(TransactionMapper.toEntity(request, balance, newAmount));
         return TransactionMapper.toDto(transaction);
     }
 }

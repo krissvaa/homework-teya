@@ -1,8 +1,11 @@
 package lv.kriss.demo.teya.service;
 
+import lv.kriss.demo.teya.domain.Account;
 import lv.kriss.demo.teya.domain.Balance;
+import lv.kriss.demo.teya.domain.Transaction;
 import lv.kriss.demo.teya.dto.AccountDetailDto;
 import lv.kriss.demo.teya.dto.AccountDto;
+import lv.kriss.demo.teya.dto.BalanceDetailDto;
 import lv.kriss.demo.teya.dto.CreateAccountRequest;
 import lv.kriss.demo.teya.exception.ResourceNotFoundException;
 import lv.kriss.demo.teya.mapper.AccountMapper;
@@ -13,6 +16,7 @@ import lv.kriss.demo.teya.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,12 +35,12 @@ public class AccountService {
     }
 
     public AccountDto createAccount(CreateAccountRequest request) {
-        var account = accountRepository.save(AccountMapper.toEntity(request));
+        Account account = accountRepository.save(AccountMapper.toEntity(request));
         return AccountMapper.toDto(account);
     }
 
     public List<AccountDto> getAllAccounts() {
-        var accounts = accountRepository.findAll();
+        List<Account> accounts = accountRepository.findAll();
         return AccountMapper.toDtoList(accounts);
     }
 
@@ -48,15 +52,15 @@ public class AccountService {
             throw new ResourceNotFoundException("No account: " + id);
         }
 
-        var account = accountRepository.findById(accountId)
+        Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new ResourceNotFoundException("No account: " + id));
 
-        var balances = balanceRepository.findByAccountId(accountId);
-        var balanceIds = balances.stream().map(Balance::getId).toList();
-        var transactionsByBalanceId = transactionRepository.findByBalanceIdIn(balanceIds).stream()
+        List<Balance> balances = balanceRepository.findByAccountId(accountId);
+        List<UUID> balanceIds = balances.stream().map(Balance::getId).toList();
+        Map<UUID, List<Transaction>> transactionsByBalanceId = transactionRepository.findByBalanceIdIn(balanceIds).stream()
                 .collect(Collectors.groupingBy(t -> t.getBalance().getId()));
 
-        var balanceDetails = balances.stream()
+        List<BalanceDetailDto> balanceDetails = balances.stream()
                 .map(b -> BalanceMapper.toDetailDto(b, transactionsByBalanceId.getOrDefault(b.getId(), List.of())))
                 .toList();
 

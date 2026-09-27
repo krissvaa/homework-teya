@@ -37,7 +37,7 @@ public class BalanceController {
 
     @PostMapping
     public ResponseEntity<BalanceDto> createBalance(@Valid @RequestBody CreateBalanceRequest request) {
-        var created = balanceService.createBalance(request);
+        BalanceDto created = balanceService.createBalance(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }

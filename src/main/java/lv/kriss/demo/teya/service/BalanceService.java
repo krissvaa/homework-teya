@@ -1,5 +1,7 @@
 package lv.kriss.demo.teya.service;
 
+import lv.kriss.demo.teya.domain.Account;
+import lv.kriss.demo.teya.domain.Balance;
 import lv.kriss.demo.teya.dto.BalanceDto;
 import lv.kriss.demo.teya.dto.CreateBalanceRequest;
 import lv.kriss.demo.teya.exception.DuplicateBalanceException;
@@ -29,7 +31,7 @@ public class BalanceService {
 
     public List<BalanceDto> getBalancesByAccountId(String accountId) {
         try {
-            var balances = balanceRepository.findByAccountId(UUID.fromString(accountId));
+            List<Balance> balances = balanceRepository.findByAccountId(UUID.fromString(accountId));
             return BalanceMapper.toDtoList(balances);
         } catch (IllegalArgumentException e) {
             logger.info("No account: {}", accountId, e);
@@ -38,16 +40,16 @@ public class BalanceService {
     }
 
     public BalanceDto createBalance(CreateBalanceRequest request) {
-        var account = accountRepository.findById(request.accountId())
+        Account account = accountRepository.findById(request.accountId())
                 .orElseThrow(() -> new ResourceNotFoundException("No account: " + request.accountId()));
 
         var currency = Currency.getInstance(request.currency());
         if (balanceRepository.existsByAccountIdAndBalance_Currency(request.accountId(), currency)) {
             throw new DuplicateBalanceException(
-                    "Account " + request.accountId() + " already has a " + request.currency() + " balance");
+                    String.format("Account %s already has a %s balance", request.accountId(), request.currency()));
         }
 
-        var balance = balanceRepository.save(BalanceMapper.toEntity(request, account));
+        Balance balance = balanceRepository.save(BalanceMapper.toEntity(request, account));
         return BalanceMapper.toDto(balance);
     }
 }
