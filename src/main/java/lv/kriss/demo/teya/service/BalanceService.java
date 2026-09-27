@@ -1,13 +1,17 @@
 package lv.kriss.demo.teya.service;
 
 import lv.kriss.demo.teya.dto.BalanceDto;
+import lv.kriss.demo.teya.dto.CreateBalanceRequest;
+import lv.kriss.demo.teya.exception.DuplicateBalanceException;
 import lv.kriss.demo.teya.exception.ResourceNotFoundException;
 import lv.kriss.demo.teya.mapper.BalanceMapper;
+import lv.kriss.demo.teya.repository.AccountRepository;
 import lv.kriss.demo.teya.repository.BalanceRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Currency;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,9 +20,11 @@ public class BalanceService {
     private final Logger logger = LoggerFactory.getLogger(BalanceService.class);
 
     private final BalanceRepository balanceRepository;
+    private final AccountRepository accountRepository;
 
-    public BalanceService(BalanceRepository balanceRepository) {
+    public BalanceService(BalanceRepository balanceRepository, AccountRepository accountRepository) {
         this.balanceRepository = balanceRepository;
+        this.accountRepository = accountRepository;
     }
 
     public List<BalanceDto> getBalancesByAccountId(String accountId) {
@@ -29,5 +35,19 @@ public class BalanceService {
             logger.info("No account: {}", accountId, e);
             throw new ResourceNotFoundException("No account: " + accountId);
         }
+    }
+
+    public BalanceDto createBalance(CreateBalanceRequest request) {
+        var account = accountRepository.findById(request.accountId())
+                .orElseThrow(() -> new ResourceNotFoundException("No account: " + request.accountId()));
+
+        var currency = Currency.getInstance(request.currency());
+        if (balanceRepository.existsByAccountIdAndBalance_Currency(request.accountId(), currency)) {
+            throw new DuplicateBalanceException(
+                    "Account " + request.accountId() + " already has a " + request.currency() + " balance");
+        }
+
+        var balance = balanceRepository.save(BalanceMapper.toEntity(request, account));
+        return BalanceMapper.toDto(balance);
     }
 }

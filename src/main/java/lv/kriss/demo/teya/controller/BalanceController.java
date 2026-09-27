@@ -1,9 +1,15 @@
 package lv.kriss.demo.teya.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lv.kriss.demo.teya.dto.BalanceDto;
+import lv.kriss.demo.teya.dto.CreateBalanceRequest;
 import lv.kriss.demo.teya.service.BalanceService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,5 +30,11 @@ public class BalanceController {
     @GetMapping
     public List<BalanceDto> getBalances(@RequestParam String accountId) {
         return balanceService.getBalancesByAccountId(accountId);
+    }
+
+    @PostMapping
+    public ResponseEntity<BalanceDto> createBalance(@Valid @RequestBody CreateBalanceRequest request) {
+        var created = balanceService.createBalance(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }

@@ -1,5 +1,6 @@
 package lv.kriss.demo.teya.controller;
 
+import lv.kriss.demo.teya.exception.DuplicateBalanceException;
 import lv.kriss.demo.teya.exception.InvalidTransactionException;
 import lv.kriss.demo.teya.exception.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -29,6 +30,11 @@ public class GlobalExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
+    @ExceptionHandler(DuplicateBalanceException.class)
+    public ProblemDetail handleDuplicateBalance(DuplicateBalanceException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
         var problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
@@ -42,6 +48,12 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleMalformedRequest(HttpMessageNotReadableException ex) {
         logger.info("Malformed request body: {}", ex.getMessage());
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Malformed request body");
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail handleIllegalArgument(IllegalArgumentException ex) {
+        logger.info("Invalid argument: {}", ex.getMessage());
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
