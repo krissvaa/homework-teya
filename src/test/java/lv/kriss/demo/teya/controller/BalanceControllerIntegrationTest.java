@@ -46,7 +46,7 @@ class BalanceControllerIntegrationTest {
                 .andExpect(jsonPath("$.amount").value(0))
                 .andReturn().getResponse().getContentAsString();
 
-        var createdId = objectMapper.readTree(responseBody).get("id").asText();
+        var createdId = objectMapper.readTree(responseBody).get("id").asString();
 
         mockMvc.perform(get("/balances").param("accountId", ALICE_ACCOUNT_ID.toString()))
                 .andExpect(status().isOk())
